@@ -2,6 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <Authors>Romain Rastel</Authors>
+    <Company>Romain Rastel</Company>
+    <Description>.Net Standard 2.0 implementation of the URI Template Spec</Description>
+    <Copyright>Romain Rastel</Copyright>
+    <PackageLicenseUrl>https://github.com/letsar/DoLess.UriTemplates/blob/master/LICENSE</PackageLicenseUrl>
+    <Product>DoLess.UriTemplates</Product>
+    <PackageProjectUrl>https://github.com/letsar/DoLess.UriTemplates</PackageProjectUrl>
+    <PackageIconUrl>https://raw.githubusercontent.com/letsar/DoLess.UriTemplates/master/nuget/doless.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/letsar/DoLess.UriTemplates</RepositoryUrl>
+    <PackageTags>UriTemplate, http, template, uri</PackageTags>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
 </Project>
