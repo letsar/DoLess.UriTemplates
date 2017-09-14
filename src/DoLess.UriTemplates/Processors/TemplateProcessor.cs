@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using DoLess.UriTemplates.Entities;
-using DoLess.UriTemplates.Expressions;
 using DoLess.UriTemplates.Helpers;
 
 namespace DoLess.UriTemplates
@@ -31,20 +30,11 @@ namespace DoLess.UriTemplates
         private const char ExplodeModifier = '*';
 
         private readonly string template;
-        private readonly Dictionary<string, object> parameters;
         private readonly StringBuilder uriStringBuilder;
         private readonly StringBuilder varStringBuilder;
-        private readonly char[] pctEncoded = new[] { PercentChar, char.MinValue, char.MinValue };
-
-        // Expressions.
-        private readonly IExpression defaultExpression;
-        private readonly IExpression reservedExpression;
-        private readonly IExpression labelExpression;
-        private readonly IExpression pathExpression;
-        private readonly IExpression matrixExpression;
-        private readonly IExpression queryExpression;
-        private readonly IExpression continuationExpression;
-        private readonly IExpression fragmentExpression;
+        private readonly char[] pctEncoded = { PercentChar, char.MinValue, char.MinValue };
+        private readonly bool ignoreUndefinedVariables;
+        private readonly ExpressionProcessor expressionProcessor;
 
         // Global state
         private State state;
@@ -52,30 +42,21 @@ namespace DoLess.UriTemplates
         private char currentChar;
 
         // Pct-encoded state.
-        private bool isInPctEncoded;
         private int pctEncodedLength;
-
-        // Expression.
-        private IExpression expression;
 
         // VarSpec.
         private int varSpecMaxLength;
         private bool varSpecIsExploded;
 
-        public TemplateProcessor(string template, IReadOnlyDictionary<string, object> variables)
+        public TemplateProcessor(string template, IReadOnlyDictionary<string, object> variables, bool ignoreUndefinedVariables)
         {
             this.template = template;
+            this.ignoreUndefinedVariables = ignoreUndefinedVariables;
+
             this.uriStringBuilder = new StringBuilder();
             this.varStringBuilder = new StringBuilder();
 
-            this.defaultExpression = new DefaultExpression(variables);
-            this.reservedExpression = new ReservedExpression(variables);
-            this.labelExpression = new LabelExpression(variables);
-            this.pathExpression = new PathExpression(variables);
-            this.matrixExpression = new MatrixExpression(variables);
-            this.queryExpression = new QueryExpression(variables);
-            this.continuationExpression = new ContinuationExpression(variables);
-            this.fragmentExpression = new FragmentExpression(variables);
+            this.expressionProcessor = new ExpressionProcessor(variables, this.uriStringBuilder);
         }
 
         public string Template => this.template;
@@ -87,8 +68,6 @@ namespace DoLess.UriTemplates
         private void Clear()
         {
             this.uriStringBuilder.Clear();
-            this.isInPctEncoded = false;
-
             this.ClearVarSpecFields();
         }
 
@@ -216,7 +195,7 @@ namespace DoLess.UriTemplates
         {
             try
             {
-                this.expression = this.GetExpression(this.currentChar);
+                this.expressionProcessor.StartExpression(this.GetExpression(this.currentChar));
                 this.state = State.VarSpec;
             }
             catch (Exception ex)
@@ -225,7 +204,7 @@ namespace DoLess.UriTemplates
             }
         }
 
-        private IExpression GetExpression(char op)
+        private ExpressionInfo GetExpression(char op)
         {
             if (op.IsOpNotSupported())
             {
@@ -235,16 +214,16 @@ namespace DoLess.UriTemplates
             {
                 switch (op)
                 {
-                    case '+': return this.reservedExpression;
-                    case '.': return this.labelExpression;
-                    case '/': return this.pathExpression;
-                    case ';': return this.matrixExpression;
-                    case '?': return this.queryExpression;
-                    case '&': return this.continuationExpression;
-                    case '#': return this.fragmentExpression;
+                    case '+': return ExpressionInfo.Reserved;
+                    case '.': return ExpressionInfo.Label;
+                    case '/': return ExpressionInfo.Path;
+                    case ';': return ExpressionInfo.Matrix;
+                    case '?': return ExpressionInfo.Query;
+                    case '&': return ExpressionInfo.Continuation;
+                    case '#': return ExpressionInfo.Fragment;
                     default:
                         this.varStringBuilder.Append(op);
-                        return this.defaultExpression;
+                        return ExpressionInfo.Default;
                 }
             }
         }
@@ -263,7 +242,6 @@ namespace DoLess.UriTemplates
 
                 case ExpressionEnd:
                     this.ExpandVarSpec();
-                    this.ProcessExpression();
                     this.state = State.Literal;
                     break;
 
@@ -349,7 +327,6 @@ namespace DoLess.UriTemplates
             {
                 case ExpressionEnd:
                     this.ExpandVarSpec();
-                    this.ProcessExpression();
                     this.state = State.Literal;
                     break;
                 case VariableSeparator:
@@ -375,13 +352,7 @@ namespace DoLess.UriTemplates
 
             this.ClearVarSpecFields();
 
-
-            this.expression.Expand(varSpec);
-        }
-
-        private void ProcessExpression()
-        {
-            this.uriStringBuilder.Append(this.expression.Process());
+            this.expressionProcessor.Expand(varSpec);
         }
 
         private void ProcessFinalStep()

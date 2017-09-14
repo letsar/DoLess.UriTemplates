@@ -5,44 +5,46 @@ using System.Globalization;
 using System.Text;
 using DoLess.UriTemplates.Entities;
 
-namespace DoLess.UriTemplates.Expressions
+namespace DoLess.UriTemplates
 {
-    internal abstract class Expression : IExpression
+    internal class ExpressionProcessor
     {
-        private readonly StringBuilder builder;
         private readonly IReadOnlyDictionary<string, object> variables;
-        private readonly string first;
-        private readonly char sep;
-        private readonly bool named;
-        private readonly string ifemp;
-        private readonly bool allowReserved;
+        private readonly StringBuilder builder;
+        private ExpressionInfo expressionInfo;
+        private int startLength;
 
-        public Expression(IReadOnlyDictionary<string, object> variables, string first, char sep, bool named, string ifemp, bool allowReserved)
+        public ExpressionProcessor(IReadOnlyDictionary<string, object> variables, StringBuilder builder)
         {
-            this.builder = new StringBuilder();
             this.variables = variables;
-            this.first = first;
-            this.sep = sep;
-            this.named = named;
-            this.ifemp = ifemp;
-            this.allowReserved = allowReserved;
+            this.builder = builder;
+        }
+
+        public void StartExpression(ExpressionInfo expressionInfo)
+        {
+            this.expressionInfo = expressionInfo;
+            this.startLength = this.builder.Length;
         }
 
         public void Expand(VarSpec varSpec)
         {
             if (this.variables.TryGetValue(varSpec.Name, out object value) && value != null)
             {
-                bool isStart = this.builder.Length == 0;
+                bool isStart = this.builder.Length == this.startLength;
                 if (isStart && IsDefined(value))
                 {
-                    this.builder.Append(this.first);
+                    this.builder.Append(this.expressionInfo.First);
                 }
                 else if (!isStart)
                 {
-                    this.builder.Append(this.sep);
+                    this.builder.Append(this.expressionInfo.Separator);
                 }
 
                 this.Expand(varSpec, value);
+            }
+            else
+            {
+                varSpec.HasBeenExpanded = false;
             }
         }
 
@@ -57,13 +59,6 @@ namespace DoLess.UriTemplates.Expressions
                 default:
                     return true;
             }
-        }
-
-        public string Process()
-        {
-            var result = this.builder.ToString();
-            this.builder.Clear();
-            return result;
         }
 
         private void Expand(VarSpec varSpec, string value)
@@ -92,18 +87,18 @@ namespace DoLess.UriTemplates.Expressions
 
         private void ExpandValues(IEnumerable values, VarSpec varSpec, char separator)
         {
-            var isNamedAndExploded = varSpec.IsExploded && this.named;
+            var isNamedAndExploded = varSpec.IsExploded && this.expressionInfo.IsNamed;
             var name = varSpec.Name;
 
             foreach (var value in values)
             {
                 if (isNamedAndExploded)
                 {
-                    this.builder.AppendEncoded(name, this.allowReserved);
+                    this.builder.AppendEncoded(name, this.expressionInfo.AllowReserved);
                     this.builder.Append('=');
                 }
 
-                this.builder.AppendEncoded(this.ValueToString(value), this.allowReserved);
+                this.builder.AppendEncoded(this.ValueToString(value), this.expressionInfo.AllowReserved);
                 this.builder.Append(separator);
             }
         }
@@ -117,9 +112,9 @@ namespace DoLess.UriTemplates.Expressions
 
             foreach (var key in values.Keys)
             {
-                this.builder.AppendEncoded(key, this.allowReserved);
+                this.builder.AppendEncoded(key, this.expressionInfo.AllowReserved);
                 this.builder.Append(pairSeparator);
-                this.builder.AppendEncoded(values[key], this.allowReserved);
+                this.builder.AppendEncoded(values[key], this.expressionInfo.AllowReserved);
                 this.builder.Append(separator);
             }
         }
@@ -133,9 +128,9 @@ namespace DoLess.UriTemplates.Expressions
 
             foreach (var key in values.Keys)
             {
-                this.builder.AppendEncoded(key, this.allowReserved);
+                this.builder.AppendEncoded(key, this.expressionInfo.AllowReserved);
                 this.builder.Append(pairSeparator);
-                this.builder.AppendEncoded(values[key], this.allowReserved);
+                this.builder.AppendEncoded(values[key], this.expressionInfo.AllowReserved);
                 this.builder.Append(separator);
             }
         }
@@ -149,7 +144,7 @@ namespace DoLess.UriTemplates.Expressions
             }
 
             var isExploded = varSpec.IsExploded;
-            char separator = isExploded ? this.sep : ',';
+            char separator = isExploded ? this.expressionInfo.Separator : ',';
 
             if (!isExploded && !isEmpty)
             {
@@ -193,13 +188,13 @@ namespace DoLess.UriTemplates.Expressions
 
         private void ExpandName(VarSpec varSpec, bool isValueEmpty)
         {
-            if (this.named)
+            if (this.expressionInfo.IsNamed)
             {
                 this.builder.Append(varSpec.Name);
 
                 if (isValueEmpty)
                 {
-                    this.builder.Append(this.ifemp);
+                    this.builder.Append(this.expressionInfo.IfEmpty);
                 }
                 else
                 {
@@ -215,7 +210,7 @@ namespace DoLess.UriTemplates.Expressions
                 value = value.Substring(0, maxLength);
             }
 
-            this.builder.AppendEncoded(value, this.allowReserved);
+            this.builder.AppendEncoded(value, this.expressionInfo.AllowReserved);
         }
 
         private string ValueToString(object value)
