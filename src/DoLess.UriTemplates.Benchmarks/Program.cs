@@ -11,6 +11,11 @@ namespace DoLess.UriTemplates.Benchmarks
 
         public static void Main(string[] args)
         {
+            var t = UriTemplate.For("{var1,var2}")
+                               .WithParameter("var1", "v1")
+                               .WithParameter("var2", "v2")
+                               .ExpandToString();
+
             Benchmark01();
         }
 
