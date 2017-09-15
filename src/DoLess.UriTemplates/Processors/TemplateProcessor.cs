@@ -19,7 +19,9 @@ namespace DoLess.UriTemplates
             VarSpec,
             VarSpecPercentEncoded,
             VarSpecMaxLength,
-            VarSpecExploded
+            VarSpecExploded,
+            VarSpecConditional,
+            VarSpecContinuation
         }
 
         private const char ExpressionStart = '{';
@@ -28,6 +30,8 @@ namespace DoLess.UriTemplates
         private const char VariableSeparator = ',';
         private const char PrefixModifier = ':';
         private const char ExplodeModifier = '*';
+        private const char ConditionalModifier = '?';
+        private const char ContinuationModifier = '&';
 
         private readonly string template;
         private readonly StringBuilder uriStringBuilder;
@@ -47,6 +51,8 @@ namespace DoLess.UriTemplates
         // VarSpec.
         private int varSpecMaxLength;
         private bool varSpecIsExploded;
+        private bool varSpecIsConditional;
+        private bool varSpecIsContinuation;
 
         public TemplateProcessor(string template, IReadOnlyDictionary<string, object> variables, bool ignoreUndefinedVariables)
         {
@@ -75,6 +81,8 @@ namespace DoLess.UriTemplates
         {
             this.varSpecMaxLength = 0;
             this.varSpecIsExploded = false;
+            this.varSpecIsConditional = false;
+            this.varSpecIsContinuation = false;
             this.varStringBuilder.Clear();
         }
 
@@ -123,7 +131,15 @@ namespace DoLess.UriTemplates
                     break;
 
                 case State.VarSpecExploded:
-                    this.ProcessVarSpecExploded();
+                    this.ProcessVarSpecSimpleModifier(ref this.varSpecIsExploded);
+                    break;
+
+                case State.VarSpecConditional:
+                    this.ProcessVarSpecSimpleModifier(ref this.varSpecIsConditional);
+                    break;
+
+                case State.VarSpecContinuation:
+                    this.ProcessVarSpecSimpleModifier(ref this.varSpecIsContinuation);
                     break;
 
                 default:
@@ -315,9 +331,9 @@ namespace DoLess.UriTemplates
             }
         }
 
-        private void ProcessVarSpecExploded()
+        private void ProcessVarSpecSimpleModifier(ref bool modifier)
         {
-            this.varSpecIsExploded = true;
+            modifier = true;
             this.ProcessEndVarSpec();
         }
 
@@ -348,7 +364,7 @@ namespace DoLess.UriTemplates
                 this.Throw("empty var name");
             }
 
-            VarSpec varSpec = new VarSpec(varName, this.varSpecMaxLength, this.varSpecIsExploded);
+            VarSpec varSpec = new VarSpec(varName, this.varSpecMaxLength, this.varSpecIsExploded, this.varSpecIsConditional, this.varSpecIsContinuation);
 
             this.ClearVarSpecFields();
 

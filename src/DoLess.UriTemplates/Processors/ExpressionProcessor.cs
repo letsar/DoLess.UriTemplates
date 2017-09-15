@@ -33,7 +33,14 @@ namespace DoLess.UriTemplates
                 bool isStart = this.builder.Length == this.startLength;
                 if (isStart && IsDefined(value))
                 {
-                    this.builder.Append(this.expressionInfo.First);
+                    if (varSpec.IsContinuation)
+                    {
+                        this.builder.Append(expressionInfo.Separator);
+                    }
+                    else
+                    {
+                        this.builder.Append(this.expressionInfo.First);
+                    }
                 }
                 else if (!isStart)
                 {
@@ -41,10 +48,22 @@ namespace DoLess.UriTemplates
                 }
 
                 this.Expand(varSpec, value);
+
+                if (varSpec.IsConditional)
+                {
+                    this.builder.Append(expressionInfo.Separator);
+                }
             }
             else
             {
-                varSpec.HasBeenExpanded = false;
+                if (varSpec.IsConditional)
+                {
+                    this.builder.Append(this.expressionInfo.First);
+                }
+                else
+                {
+                    varSpec.HasBeenExpanded = false;
+                }
             }
         }
 
