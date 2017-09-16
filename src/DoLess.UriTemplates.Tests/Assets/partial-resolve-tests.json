@@ -1,0 +1,58 @@
+{
+    "Partial resolve":{
+        "level":100,
+        "variables":{
+            "var1"         : "v1",
+            "var3"         : "v3",
+            "id"           : "person",
+            "token"        : "12345",
+            "fields"       : ["id", "name", "picture"],           
+            "assoc"        : { "key1" : "value1" }
+        },
+        "testcases":[
+
+            ["{var0,var1,var2,var3,var4}", "{<var0}v1{-var2}v3{>var4}"],
+            ["{var0,var1,id,var2,var3,var4}", "{<var0}v1,person{-var2}v3{>var4}"],
+            ["{var0,var1,id,var2,var3,var4,token}", "{<var0}v1,person{-var2}v3{-var4}12345"],
+            ["{+var0,var1,var2,var3,var4}", "{+<var0}v1{+-var2}v3{+>var4}"],
+            ["{.var0,var1,var2,var3,var4}", "{.<var0}v1{.-var2}v3{.var4}"],
+            ["{/var0,var1,var2,var3,var4}", "{/<var0}v1{/-var2}v3{/var4}"],
+            ["{;var0,var1,var2,var3,var4}", "{;<var0}var1=v1{;-var2}var3=v3{;var4}"],
+            ["{?var0,var1,var2,var3,var4}", "{?<var0}var1=v1{?-var2}var3=v3{?>var4}"],
+            ["{&var0,var1,var2,var3,var4}", "{&<var0}var1=v1{&-var2}var3=v3{&var4}"],
+            ["{#var0,var1,var2,var3,var4}", "{#<var0}v1{#-var2}v3{#>var4}"],         
+            ["http://{var1}{/undef}{?undef}{#undef}", "http://v1{/undef}{?undef}{#undef}"],
+            ["http://{undef}{/var1}{?undef}{#undef}", "http://{undef}/v1{?undef}{#undef}"], 
+            ["http://{undef}{/undef}{?var1}{#undef}", "http://{undef}{/undef}?var1=v1{#undef}"], 
+            ["http://{undef}{/undef}{?undef}{#var1}", "http://{undef}{/undef}{?undef}#v1"], 
+            ["http://ex.org/{path1,var3,path3}/test", "http://ex.org/{<path1}v3{>path3}/test"], 
+            ["http://ex.org{/path1,var3,path3}/test", "http://ex.org{/<path1}v3{/path3}/test"],
+            ["http://ex.org/{+path1,var3,path3}/test", "http://ex.org/{+<path1}v3{+>path3}/test"],
+            ["http://ex.org/{#path1,var3,path3}", "http://ex.org/{#<path1}v3{#>path3}"],
+            ["{undef}", "{undef}"],
+            ["{+undef}", "{+undef}"],
+            ["{.undef}", "{.undef}"],
+            ["{/undef}", "{/undef}"],
+            ["{;undef}", "{;undef}"],
+            ["{?undef}", "{?undef}"],
+            ["{&undef}", "{&undef}"],
+            ["{#undef}", "{#undef}"],
+            ["{undef,undef2}", "{undef,undef2}"],
+            ["{+undef,undef2}", "{+undef,undef2}"],
+            ["{.undef,undef2}", "{.undef,undef2}"],
+            ["{/undef,undef2}", "{/undef,undef2}"],
+            ["{;undef,undef2}", "{;undef,undef2}"],
+            ["{?undef,undef2}", "{?undef,undef2}"],
+            ["{&undef,undef2}", "{&undef,undef2}"],
+            ["{#undef,undef2}", "{#undef,undef2}"],
+            ["{undef,var1,undef2}", "{<undef}v1{>undef2}"],
+            ["{+undef,var1,undef2}", "{+<undef}v1{+>undef2}"],
+            ["{.undef,var1,undef2}", "{.<undef}v1{.undef2}"],
+            ["{/undef,var1,undef2}", "{/<undef}v1{/undef2}"],
+            ["{;undef,var1,undef2}", "{;<undef}var1=v1{;undef2}"],
+            ["{?undef,var1,undef2}", "{?<undef}var1=v1{?>undef2}"],
+            ["{&undef,var1,undef2}", "{&<undef}var1=v1{&undef2}"],
+            ["{#undef,var1,undef2}", "{#<undef}v1{#>undef2}"]
+        ]
+    }    
+}

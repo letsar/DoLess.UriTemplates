@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using DoLess.UriTemplates.Helpers;
 
 namespace DoLess.UriTemplates.Entities
 {
@@ -11,7 +12,6 @@ namespace DoLess.UriTemplates.Entities
             this.Name = name;
             this.MaxLength = Math.Max(0, maxLength);
             this.IsExploded = isExploded;
-            this.HasBeenExpanded = false;
         }
 
         public string Name { get; }
@@ -20,6 +20,20 @@ namespace DoLess.UriTemplates.Entities
 
         public bool IsExploded { get; }
 
-        public bool HasBeenExpanded { get; set; }
+        public override string ToString()
+        {
+            if (this.IsExploded)
+            {
+                return this.Name + Constants.ExplodeModifier;
+            }
+            else if (this.MaxLength > 0)
+            {
+                return this.Name + Constants.PrefixModifier + this.MaxLength.ToString();
+            }
+            else
+            {
+                return this.Name;
+            }
+        }
     }
 }
