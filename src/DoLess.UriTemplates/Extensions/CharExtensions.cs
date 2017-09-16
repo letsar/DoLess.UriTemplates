@@ -96,7 +96,8 @@
         {
             return self.IsOpLevel1() ||
                    self.IsOpLevel2() ||
-                   self.IsOpLevel3();
+                   self.IsOpLevel3() ||
+                   self.IsExpModifier();
         }
 
         public static bool IsOpLevel1(this char self)
@@ -133,6 +134,12 @@
             return self == '$' ||
                    self == '(' ||
                    self == ')';
+        }
+
+        public static bool IsExpModifier(this char self)
+        {
+            return self == '<' ||
+                   self == '>';
         }
 
         public static bool IsValidVarSpecChar(this char self)

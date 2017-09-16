@@ -14,22 +14,13 @@ namespace DoLess.UriTemplates.Tests
     public class UriTemplateSpecTests
     {
         [TestCaseSource(nameof(SpecExamplesData))]
-        public void SpecExamplesTests(SpecTestCase testCase)
-        {
-            SpecTestCaseTests(testCase);
-        }
-
         [TestCaseSource(nameof(ExtendedTestsData))]
-        public void ExtendedTests(SpecTestCase testCase)
-        {
-            SpecTestCaseTests(testCase);
-        }
-
         [TestCaseSource(nameof(NegativeTestsData))]
-        public void NegativeTests(SpecTestCase testCase)
+        [TestCaseSource(nameof(ExtendedSpecData))]
+        public void RunTests(SpecTestCase testCase)
         {
             SpecTestCaseTests(testCase);
-        }
+        }        
 
         public static IEnumerable<TestCaseData> SpecExamplesData()
         {
@@ -44,6 +35,11 @@ namespace DoLess.UriTemplates.Tests
         public static IEnumerable<TestCaseData> NegativeTestsData()
         {
             return CreateTestSuiteFromResource("negative-tests");
+        }
+
+        public static IEnumerable<TestCaseData> ExtendedSpecData()
+        {
+            return CreateTestSuiteFromResource("extended-spec-tests");
         }
 
         private static void SpecTestCaseTests(SpecTestCase testCase)

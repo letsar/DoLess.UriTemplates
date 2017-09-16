@@ -16,12 +16,11 @@ namespace DoLess.UriTemplates
             Literal,
             LiteralPercentEncoded,
             Operator,
+            ExpModifier,
             VarSpec,
             VarSpecPercentEncoded,
             VarSpecMaxLength,
-            VarSpecExploded,
-            VarSpecConditional,
-            VarSpecContinuation
+            VarSpecExploded
         }
 
         private const char ExpressionStart = '{';
@@ -30,8 +29,8 @@ namespace DoLess.UriTemplates
         private const char VariableSeparator = ',';
         private const char PrefixModifier = ':';
         private const char ExplodeModifier = '*';
-        private const char ConditionalModifier = '?';
-        private const char ContinuationModifier = '&';
+        private const char ExpStartModifier = '<';
+        private const char ExpEndModifier = '>';
 
         private readonly string template;
         private readonly StringBuilder uriStringBuilder;
@@ -40,7 +39,7 @@ namespace DoLess.UriTemplates
         private readonly bool ignoreUndefinedVariables;
         private readonly ExpressionProcessor expressionProcessor;
 
-        // Global state
+        // Global state.
         private State state;
         private int position;
         private char currentChar;
@@ -51,8 +50,6 @@ namespace DoLess.UriTemplates
         // VarSpec.
         private int varSpecMaxLength;
         private bool varSpecIsExploded;
-        private bool varSpecIsConditional;
-        private bool varSpecIsContinuation;
 
         public TemplateProcessor(string template, IReadOnlyDictionary<string, object> variables, bool ignoreUndefinedVariables)
         {
@@ -81,8 +78,6 @@ namespace DoLess.UriTemplates
         {
             this.varSpecMaxLength = 0;
             this.varSpecIsExploded = false;
-            this.varSpecIsConditional = false;
-            this.varSpecIsContinuation = false;
             this.varStringBuilder.Clear();
         }
 
@@ -118,6 +113,10 @@ namespace DoLess.UriTemplates
                     this.ProcessOperator();
                     break;
 
+                case State.ExpModifier:
+                    this.ProcessExpModifier();
+                    break;
+
                 case State.VarSpec:
                     this.ProcessVarSpec();
                     break;
@@ -131,15 +130,7 @@ namespace DoLess.UriTemplates
                     break;
 
                 case State.VarSpecExploded:
-                    this.ProcessVarSpecSimpleModifier(ref this.varSpecIsExploded);
-                    break;
-
-                case State.VarSpecConditional:
-                    this.ProcessVarSpecSimpleModifier(ref this.varSpecIsConditional);
-                    break;
-
-                case State.VarSpecContinuation:
-                    this.ProcessVarSpecSimpleModifier(ref this.varSpecIsContinuation);
+                    this.ProcessVarSpecExploded();
                     break;
 
                 default:
@@ -211,8 +202,49 @@ namespace DoLess.UriTemplates
         {
             try
             {
-                this.expressionProcessor.StartExpression(this.GetExpression(this.currentChar));
-                this.state = State.VarSpec;
+                if (this.currentChar.IsOpNotSupported())
+                {
+                    throw new OperatorNotSupportedException(this.currentChar);
+                }
+                else
+                {
+                    switch (this.currentChar)
+                    {
+                        case '+':
+                            this.expressionProcessor.StartExpression(ExpressionInfo.Reserved);
+                            break;
+                        case '.':
+                            this.expressionProcessor.StartExpression(ExpressionInfo.Label);
+                            break;
+                        case '/':
+                            this.expressionProcessor.StartExpression(ExpressionInfo.Path);
+                            break;
+                        case ';':
+                            this.expressionProcessor.StartExpression(ExpressionInfo.Matrix);
+                            break;
+                        case '?':
+                            this.expressionProcessor.StartExpression(ExpressionInfo.Query);
+                            break;
+                        case '&':
+                            this.expressionProcessor.StartExpression(ExpressionInfo.Continuation);
+                            break;
+                        case '#':
+                            this.expressionProcessor.StartExpression(ExpressionInfo.Fragment);
+                            break;
+                        default:
+                            this.expressionProcessor.StartExpression(ExpressionInfo.Default);
+                            if (this.currentChar.IsExpModifier())
+                            {
+                                this.ProcessExpModifier();
+                            }
+                            else
+                            {
+                                this.varStringBuilder.Append(this.currentChar);
+                            }
+                            break;
+                    }
+                }
+                this.state = State.ExpModifier;
             }
             catch (Exception ex)
             {
@@ -220,27 +252,23 @@ namespace DoLess.UriTemplates
             }
         }
 
-        private ExpressionInfo GetExpression(char op)
+        private void ProcessExpModifier()
         {
-            if (op.IsOpNotSupported())
+            this.state = State.VarSpec;
+
+            switch (this.currentChar)
             {
-                throw new OperatorNotSupportedException(op);
-            }
-            else
-            {
-                switch (op)
-                {
-                    case '+': return ExpressionInfo.Reserved;
-                    case '.': return ExpressionInfo.Label;
-                    case '/': return ExpressionInfo.Path;
-                    case ';': return ExpressionInfo.Matrix;
-                    case '?': return ExpressionInfo.Query;
-                    case '&': return ExpressionInfo.Continuation;
-                    case '#': return ExpressionInfo.Fragment;
-                    default:
-                        this.varStringBuilder.Append(op);
-                        return ExpressionInfo.Default;
-                }
+                case ExpStartModifier:
+                    this.expressionProcessor.SetStartModifier();
+                    break;
+
+                case ExpEndModifier:
+                    this.expressionProcessor.SetEndModifier();
+                    break;
+
+                default:
+                    this.ProcessVarSpec();
+                    break;
             }
         }
 
@@ -257,8 +285,7 @@ namespace DoLess.UriTemplates
                     break;
 
                 case ExpressionEnd:
-                    this.ExpandVarSpec();
-                    this.state = State.Literal;
+                    this.ProcessEndExpression();
                     break;
 
                 case ExpressionStart:
@@ -331,9 +358,9 @@ namespace DoLess.UriTemplates
             }
         }
 
-        private void ProcessVarSpecSimpleModifier(ref bool modifier)
+        private void ProcessVarSpecExploded()
         {
-            modifier = true;
+            this.varSpecIsExploded = true;
             this.ProcessEndVarSpec();
         }
 
@@ -342,13 +369,55 @@ namespace DoLess.UriTemplates
             switch (this.currentChar)
             {
                 case ExpressionEnd:
-                    this.ExpandVarSpec();
-                    this.state = State.Literal;
+                    this.ProcessEndExpression();
                     break;
+
                 case VariableSeparator:
                     this.ExpandVarSpec();
                     this.state = State.VarSpec;
                     break;
+
+                default:
+                    this.Throw($"unexpected {this.currentChar} character");
+                    break;
+            }
+        }
+
+        private void ProcessEndExpression()
+        {
+            this.ExpandVarSpec();
+            this.expressionProcessor.EndExpression();
+            this.state = State.Literal;
+        }
+
+        private void ProcessVarSpecOptionalModifier(ref bool modifier)
+        {
+            modifier = true;
+            this.ProcessEndVarSpecOptionalModifier();
+        }
+
+        private void ProcessEndVarSpecOptionalModifier()
+        {
+            switch (this.currentChar)
+            {
+                case ExpressionEnd:
+                    this.ExpandVarSpec();
+                    this.state = State.Literal;
+                    break;
+
+                case VariableSeparator:
+                    this.ExpandVarSpec();
+                    this.state = State.VarSpec;
+                    break;
+
+                case PrefixModifier:
+                    this.state = State.VarSpecMaxLength;
+                    break;
+
+                case ExplodeModifier:
+                    this.state = State.VarSpecExploded;
+                    break;
+
                 default:
                     this.Throw($"unexpected {this.currentChar} character");
                     break;
@@ -364,7 +433,7 @@ namespace DoLess.UriTemplates
                 this.Throw("empty var name");
             }
 
-            VarSpec varSpec = new VarSpec(varName, this.varSpecMaxLength, this.varSpecIsExploded, this.varSpecIsConditional, this.varSpecIsContinuation);
+            VarSpec varSpec = new VarSpec(varName, this.varSpecMaxLength, this.varSpecIsExploded);
 
             this.ClearVarSpecFields();
 

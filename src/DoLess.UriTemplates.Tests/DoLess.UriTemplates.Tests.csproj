@@ -7,9 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove=".DS_Store" />
+    <None Remove="Assets\extended-spec-tests.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <EmbeddedResource Include="..\..\libs\uritemplate-test\extended-tests.json" Link="Assets\extended-tests.json" />
     <EmbeddedResource Include="..\..\libs\uritemplate-test\negative-tests.json" Link="Assets\negative-tests.json" />
     <EmbeddedResource Include="..\..\libs\uritemplate-test\spec-examples.json" Link="Assets\spec-examples.json" />
+    <EmbeddedResource Include="Assets\extended-spec-tests.json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,10 +28,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\DoLess.UriTemplates\DoLess.UriTemplates.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Assets\" />
   </ItemGroup>
 
 </Project>
