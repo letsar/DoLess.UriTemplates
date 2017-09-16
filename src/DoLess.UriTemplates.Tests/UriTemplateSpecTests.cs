@@ -19,8 +19,14 @@ namespace DoLess.UriTemplates.Tests
         [TestCaseSource(nameof(ExtendedSpecData))]
         public void RunTests(SpecTestCase testCase)
         {
-            SpecTestCaseTests(testCase);
-        }        
+            SpecTestCaseTests(testCase, false);
+        }
+
+        [TestCaseSource(nameof(PartialResolveData))]
+        public void PartialRunTests(SpecTestCase testCase)
+        {
+            SpecTestCaseTests(testCase, true);
+        }
 
         public static IEnumerable<TestCaseData> SpecExamplesData()
         {
@@ -42,7 +48,12 @@ namespace DoLess.UriTemplates.Tests
             return CreateTestSuiteFromResource("extended-spec-tests");
         }
 
-        private static void SpecTestCaseTests(SpecTestCase testCase)
+        public static IEnumerable<TestCaseData> PartialResolveData()
+        {
+            return CreateTestSuiteFromResource("partial-resolve-tests");
+        }
+
+        private static void SpecTestCaseTests(SpecTestCase testCase, bool isPartial)
         {
             var uriTemplate = UriTemplate.For(testCase.Template);
 
@@ -54,15 +65,15 @@ namespace DoLess.UriTemplates.Tests
             switch (testCase)
             {
                 case SpecFailTestCase x:
-                    ShouldFail(uriTemplate);
+                    ShouldFail(uriTemplate, isPartial);
                     break;
 
                 case SpecListTestCase x:
-                    ShouldMatchOne(uriTemplate, x);
+                    ShouldMatchOne(uriTemplate, x, isPartial);
                     break;
 
                 case SpecStringTestCase x:
-                    ShouldMatch(uriTemplate, x);
+                    ShouldMatch(uriTemplate, x, isPartial);
                     break;
 
                 default:
@@ -70,21 +81,21 @@ namespace DoLess.UriTemplates.Tests
             }
         }
 
-        private static void ShouldFail(UriTemplate uriTemplate)
+        private static void ShouldFail(UriTemplate uriTemplate, bool isPartial)
         {
-            Action job = () => uriTemplate.ExpandToString();
+            Action job = () => uriTemplate.ExpandToString(!isPartial);
             job.ShouldThrow<UriTemplateException>();
         }
 
-        private static void ShouldMatch(UriTemplate uriTemplate, SpecStringTestCase testCase)
+        private static void ShouldMatch(UriTemplate uriTemplate, SpecStringTestCase testCase, bool isPartial)
         {
-            string result = uriTemplate.ExpandToString();
+            string result = uriTemplate.ExpandToString(!isPartial);
             result.ShouldBeEquivalentTo(testCase.Result);
         }
 
-        private static void ShouldMatchOne(UriTemplate uriTemplate, SpecListTestCase testCase)
+        private static void ShouldMatchOne(UriTemplate uriTemplate, SpecListTestCase testCase, bool isPartial)
         {
-            string result = uriTemplate.ExpandToString();
+            string result = uriTemplate.ExpandToString(!isPartial);
             result.Should()
                   .BeOneOf(testCase.Results);
         }

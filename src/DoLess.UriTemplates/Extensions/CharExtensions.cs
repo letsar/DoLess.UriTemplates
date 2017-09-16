@@ -1,4 +1,6 @@
-﻿namespace DoLess.UriTemplates
+﻿using DoLess.UriTemplates.Helpers;
+
+namespace DoLess.UriTemplates
 {
     internal static class CharExtensions
     {
@@ -138,9 +140,9 @@
 
         public static bool IsExpModifier(this char self)
         {
-            return self == '<' ||
-                   self == '-' ||
-                   self == '>';
+            return self == Constants.ExpStartModifier ||
+                   self == Constants.ExpMiddleModifier ||
+                   self == Constants.ExpEndModifier;
         }
 
         public static bool IsValidVarSpecChar(this char self)

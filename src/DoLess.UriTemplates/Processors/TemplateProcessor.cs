@@ -23,20 +23,10 @@ namespace DoLess.UriTemplates
             VarSpecExploded
         }
 
-        private const char ExpressionStart = '{';
-        private const char ExpressionEnd = '}';
-        private const char PercentChar = '%';
-        private const char VariableSeparator = ',';
-        private const char PrefixModifier = ':';
-        private const char ExplodeModifier = '*';
-        private const char ExpStartModifier = '<';
-        private const char ExpMiddleModifier = '-';
-        private const char ExpEndModifier = '>';
-
         private readonly string template;
         private readonly StringBuilder uriStringBuilder;
         private readonly StringBuilder varStringBuilder;
-        private readonly char[] pctEncoded = { PercentChar, char.MinValue, char.MinValue };
+        private readonly char[] pctEncoded = { Constants.PercentChar, char.MinValue, char.MinValue };
         private readonly bool ignoreUndefinedVariables;
         private readonly ExpressionProcessor expressionProcessor;
 
@@ -57,10 +47,10 @@ namespace DoLess.UriTemplates
             this.template = template;
             this.ignoreUndefinedVariables = ignoreUndefinedVariables;
 
-            this.uriStringBuilder = new StringBuilder();
+            this.uriStringBuilder = new StringBuilder(template.Length * 2);
             this.varStringBuilder = new StringBuilder();
 
-            this.expressionProcessor = new ExpressionProcessor(variables, this.uriStringBuilder);
+            this.expressionProcessor = new ExpressionProcessor(variables, this.uriStringBuilder, ignoreUndefinedVariables);
         }
 
         public string Template => this.template;
@@ -144,15 +134,15 @@ namespace DoLess.UriTemplates
         {
             switch (this.currentChar)
             {
-                case ExpressionStart:
+                case Constants.ExpStart:
                     this.state = State.Operator;
                     break;
 
-                case ExpressionEnd:
+                case Constants.ExpEnd:
                     this.Throw("unexpected '}'");
                     break;
 
-                case PercentChar:
+                case Constants.PercentChar:
                     this.state = State.LiteralPercentEncoded;
                     this.pctEncodedLength = 1;
                     break;
@@ -259,15 +249,15 @@ namespace DoLess.UriTemplates
 
             switch (this.currentChar)
             {
-                case ExpStartModifier:
+                case Constants.ExpStartModifier:
                     this.expressionProcessor.SetStartModifier();
                     break;
 
-                case ExpMiddleModifier:
+                case Constants.ExpMiddleModifier:
                     this.expressionProcessor.SetMiddleModifier();
                     break;
 
-                case ExpEndModifier:
+                case Constants.ExpEndModifier:
                     this.expressionProcessor.SetEndModifier();
                     break;
 
@@ -281,28 +271,28 @@ namespace DoLess.UriTemplates
         {
             switch (this.currentChar)
             {
-                case PrefixModifier:
+                case Constants.PrefixModifier:
                     this.state = State.VarSpecMaxLength;
                     break;
 
-                case ExplodeModifier:
+                case Constants.ExplodeModifier:
                     this.state = State.VarSpecExploded;
                     break;
 
-                case ExpressionEnd:
+                case Constants.ExpEnd:
                     this.ProcessEndExpression();
                     break;
 
-                case ExpressionStart:
+                case Constants.ExpStart:
                     this.Throw("unexpected '{'");
                     break;
 
-                case PercentChar:
+                case Constants.PercentChar:
                     this.state = State.VarSpecPercentEncoded;
                     this.pctEncodedLength = 1;
                     break;
 
-                case VariableSeparator:
+                case Constants.VariableSeparator:
                     this.ExpandVarSpec();
                     this.state = State.VarSpec;
                     break;
@@ -373,11 +363,11 @@ namespace DoLess.UriTemplates
         {
             switch (this.currentChar)
             {
-                case ExpressionEnd:
+                case Constants.ExpEnd:
                     this.ProcessEndExpression();
                     break;
 
-                case VariableSeparator:
+                case Constants.VariableSeparator:
                     this.ExpandVarSpec();
                     this.state = State.VarSpec;
                     break;
@@ -405,21 +395,21 @@ namespace DoLess.UriTemplates
         {
             switch (this.currentChar)
             {
-                case ExpressionEnd:
+                case Constants.ExpEnd:
                     this.ExpandVarSpec();
                     this.state = State.Literal;
                     break;
 
-                case VariableSeparator:
+                case Constants.VariableSeparator:
                     this.ExpandVarSpec();
                     this.state = State.VarSpec;
                     break;
 
-                case PrefixModifier:
+                case Constants.PrefixModifier:
                     this.state = State.VarSpecMaxLength;
                     break;
 
-                case ExplodeModifier:
+                case Constants.ExplodeModifier:
                     this.state = State.VarSpecExploded;
                     break;
 

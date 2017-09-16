@@ -2,8 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text;
 using DoLess.UriTemplates.Entities;
+using DoLess.UriTemplates.Helpers;
 
 namespace DoLess.UriTemplates
 {
@@ -11,41 +13,62 @@ namespace DoLess.UriTemplates
     {
         private readonly IReadOnlyDictionary<string, object> variables;
         private readonly StringBuilder builder;
+        private readonly List<VarSpec> unexpandedVariables;
         private ExpressionInfo expressionInfo;
         private int startLength;
         private bool isEmpty;
+        private int definedVarCount;
 
         private bool hasStartModifier;
         private bool hasEndModifier;
         private bool hasMiddleModifier;
+        private bool hasPartialModifier;
+        private char expModifier;
 
-        public ExpressionProcessor(IReadOnlyDictionary<string, object> variables, StringBuilder builder)
+        public ExpressionProcessor(IReadOnlyDictionary<string, object> variables, StringBuilder builder, bool hasPartialModifier)
         {
             this.variables = variables;
             this.builder = builder;
+            this.hasPartialModifier = hasPartialModifier;
+            this.unexpandedVariables = new List<VarSpec>();
         }
 
         public void StartExpression(ExpressionInfo expressionInfo)
         {
             this.expressionInfo = expressionInfo;
             this.startLength = this.builder.Length;
-            this.ClearModifiers();
+            this.Clear();
         }
 
         public void EndExpression()
         {
-            if (!this.isEmpty && (this.hasStartModifier || this.hasMiddleModifier))
+            if (this.hasPartialModifier)
+            {
+                if (this.IsStart())
+                {
+                    this.expModifier = Constants.ExpStartModifier;
+                }
+                else
+                {
+                    this.expModifier = Constants.ExpEndModifier;
+                }
+                this.AppendUnexpandedVariables(this.definedVarCount > 0);
+            }
+            else if (!this.isEmpty && (this.hasStartModifier || this.hasMiddleModifier))
             {
                 this.builder.Append(this.expressionInfo.Separator);
             }
         }
 
-        public void ClearModifiers()
+        public void Clear()
         {
             this.hasEndModifier = false;
             this.hasStartModifier = false;
             this.hasMiddleModifier = false;
+            this.unexpandedVariables.Clear();
             this.isEmpty = true;
+            this.expModifier = Constants.ExpStartModifier;
+            this.definedVarCount = 0;
         }
 
         public void SetStartModifier()
@@ -65,11 +88,17 @@ namespace DoLess.UriTemplates
 
         public void Expand(VarSpec varSpec)
         {
-            bool isStart = this.builder.Length == this.startLength;
-
             if (this.variables.TryGetValue(varSpec.Name, out object value) && value != null)
             {
-                if (isStart && IsDefined(value))
+                this.definedVarCount++;
+                bool isUnexpandedVariablesEmpty = this.unexpandedVariables.Count == 0;
+                if (this.hasPartialModifier)
+                {
+                    this.AppendUnexpandedVariables();
+                    this.expModifier = Constants.ExpMiddleModifier;
+                }
+
+                if (this.IsStart() && IsDefined(value) && isUnexpandedVariablesEmpty)
                 {
                     if (this.hasEndModifier || this.hasMiddleModifier)
                     {
@@ -80,7 +109,7 @@ namespace DoLess.UriTemplates
                         this.builder.Append(this.expressionInfo.First);
                     }
                 }
-                else if (!isStart)
+                else if (!this.IsStart() && isUnexpandedVariablesEmpty)
                 {
                     this.builder.Append(this.expressionInfo.Separator);
                 }
@@ -90,21 +119,46 @@ namespace DoLess.UriTemplates
             }
             else
             {
-                if (isStart)
+                if (this.hasPartialModifier)
                 {
-                    if (this.hasStartModifier)
-                    {
-                        this.builder.Append(this.expressionInfo.First);
-                    }
-                    else if (this.hasMiddleModifier)
-                    {
-                        this.builder.Append(this.expressionInfo.Separator);
-                    }
+                    this.unexpandedVariables.Add(varSpec);
                 }
                 else
                 {
-                    varSpec.HasBeenExpanded = false;
+                    if (this.IsStart())
+                    {
+                        if (this.hasStartModifier)
+                        {
+                            this.builder.Append(this.expressionInfo.First);
+                        }
+                        else if (this.hasMiddleModifier)
+                        {
+                            this.builder.Append(this.expressionInfo.Separator);
+                        }
+                    }
                 }
+            }
+        }
+
+        private bool IsStart()
+        {
+            return this.builder.Length == this.startLength;
+        }
+
+        private void AppendUnexpandedVariables(bool hasExpModifier = true)
+        {
+            if (this.unexpandedVariables.Count > 0)
+            {
+                this.builder.Append(Constants.ExpStart);
+                this.builder.Append(this.expressionInfo.OpCode);
+                if (hasExpModifier && (this.expModifier != Constants.ExpEndModifier || this.expressionInfo.IsEndModifierNeeded))
+                {
+                    this.builder.Append(this.expModifier);
+                }
+                this.builder.Append(string.Join(",", this.unexpandedVariables.Select(x => x.ToString())));
+                this.builder.Append(Constants.ExpEnd);
+
+                this.unexpandedVariables.Clear();
             }
         }
 

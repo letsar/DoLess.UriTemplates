@@ -80,7 +80,7 @@ namespace DoLess.UriTemplates
         /// <returns></returns>
         public string ExpandToString(bool ignoreUndefinedVariables = true)
         {
-            TemplateProcessor templateProcessor = new TemplateProcessor(this.template, this.variables, ignoreUndefinedVariables);
+            TemplateProcessor templateProcessor = new TemplateProcessor(this.template, this.variables, !ignoreUndefinedVariables);
             return templateProcessor.Expand();
         }
 
