@@ -13,6 +13,7 @@
     <RepositoryUrl>https://github.com/letsar/DoLess.UriTemplates</RepositoryUrl>
     <PackageTags>UriTemplate, http, template, uri</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
 </Project>
