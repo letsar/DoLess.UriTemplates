@@ -54,7 +54,8 @@ namespace DoLess.UriTemplates
                 }
                 this.AppendUnexpandedVariables(this.definedVarCount > 0);
             }
-            else if (!this.isEmpty && (this.hasStartModifier || this.hasMiddleModifier))
+
+            if (!this.isEmpty && (this.hasStartModifier || this.hasMiddleModifier))
             {
                 this.builder.Append(this.expressionInfo.Separator);
             }
@@ -109,7 +110,7 @@ namespace DoLess.UriTemplates
                         this.builder.Append(this.expressionInfo.First);
                     }
                 }
-                else if (!this.IsStart() && isUnexpandedVariablesEmpty)
+                else if (!this.IsStart() && (isUnexpandedVariablesEmpty || this.hasPartialModifier))
                 {
                     this.builder.Append(this.expressionInfo.Separator);
                 }
@@ -151,7 +152,22 @@ namespace DoLess.UriTemplates
             {
                 this.builder.Append(Constants.ExpStart);
                 this.builder.Append(this.expressionInfo.OpCode);
-                if (hasExpModifier && (this.expModifier != Constants.ExpEndModifier || this.expressionInfo.IsEndModifierNeeded))
+                if (this.hasStartModifier)
+                {
+                    this.builder.Append(Constants.ExpStartModifier);
+                    this.hasStartModifier = false;
+                }
+                else if (this.hasMiddleModifier)
+                {
+                    this.builder.Append(Constants.ExpMiddleModifier);
+                    this.hasMiddleModifier = false;
+                }
+                else if (this.hasEndModifier)
+                {
+                    this.builder.Append(Constants.ExpEndModifier);
+                    this.hasEndModifier = false;
+                }
+                else if (hasExpModifier && (this.expModifier != Constants.ExpEndModifier || this.expressionInfo.IsEndModifierNeeded))
                 {
                     this.builder.Append(this.expModifier);
                 }
