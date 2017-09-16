@@ -30,6 +30,7 @@ namespace DoLess.UriTemplates
         private const char PrefixModifier = ':';
         private const char ExplodeModifier = '*';
         private const char ExpStartModifier = '<';
+        private const char ExpMiddleModifier = '-';
         private const char ExpEndModifier = '>';
 
         private readonly string template;
@@ -260,6 +261,10 @@ namespace DoLess.UriTemplates
             {
                 case ExpStartModifier:
                     this.expressionProcessor.SetStartModifier();
+                    break;
+
+                case ExpMiddleModifier:
+                    this.expressionProcessor.SetMiddleModifier();
                     break;
 
                 case ExpEndModifier:

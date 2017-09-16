@@ -1,18 +1,17 @@
-﻿using System;
-namespace DoLess.UriTemplates.Entities
+﻿namespace DoLess.UriTemplates.Entities
 {
     internal class ExpressionInfo
     {
-        public static ExpressionInfo Default = new ExpressionInfo(string.Empty, string.Empty, ',', false, string.Empty, false);
-        public static ExpressionInfo Reserved = new ExpressionInfo("+", string.Empty, ',', false, string.Empty, true);
-        public static ExpressionInfo Label = new ExpressionInfo(".", ".", '.', false, string.Empty, false);
-        public static ExpressionInfo Path = new ExpressionInfo("/", "/", '/', false, string.Empty, false);
-        public static ExpressionInfo Matrix = new ExpressionInfo(";", ";", ';', true, string.Empty, false);
-        public static ExpressionInfo Query = new ExpressionInfo("?", "?", '&', true, "=", false, "&");
-        public static ExpressionInfo Continuation = new ExpressionInfo("&", "&", '&', true, "=", false);
-        public static ExpressionInfo Fragment = new ExpressionInfo("#", "#", ',', false, string.Empty, true, "");
+        public static ExpressionInfo Default = new ExpressionInfo(string.Empty, string.Empty, ',', false, string.Empty, false, true);
+        public static ExpressionInfo Reserved = new ExpressionInfo("+", string.Empty, ',', false, string.Empty, true, true);
+        public static ExpressionInfo Label = new ExpressionInfo(".", ".", '.', false, string.Empty, false, false);
+        public static ExpressionInfo Path = new ExpressionInfo("/", "/", '/', false, string.Empty, false, false);
+        public static ExpressionInfo Matrix = new ExpressionInfo(";", ";", ';', true, string.Empty, false, false);
+        public static ExpressionInfo Query = new ExpressionInfo("?", "?", '&', true, "=", false, true);
+        public static ExpressionInfo Continuation = new ExpressionInfo("&", "&", '&', true, "=", false, false);
+        public static ExpressionInfo Fragment = new ExpressionInfo("#", "#", ',', false, string.Empty, true, true);
 
-        private ExpressionInfo(string opCode, string first, char sep, bool named, string ifemp, bool allowReserved, string otherSep = null)
+        private ExpressionInfo(string opCode, string first, char sep, bool named, string ifemp, bool allowReserved, bool isEndModifierNeeded)
         {
             this.OpCode = opCode;
             this.First = first;
@@ -20,8 +19,7 @@ namespace DoLess.UriTemplates.Entities
             this.IsNamed = named;
             this.IfEmpty = ifemp;
             this.AllowReserved = allowReserved;
-            this.OtherSeparator = otherSep ?? opCode;
-
+            this.IsEndModifierNeeded = isEndModifierNeeded;
         }
 
         public string OpCode { get; }
@@ -36,6 +34,6 @@ namespace DoLess.UriTemplates.Entities
 
         public bool AllowReserved { get; }
 
-        public string OtherSeparator { get; }
+        public bool IsEndModifierNeeded { get; }
     }
 }

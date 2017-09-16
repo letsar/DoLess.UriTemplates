@@ -17,6 +17,7 @@ namespace DoLess.UriTemplates
 
         private bool hasStartModifier;
         private bool hasEndModifier;
+        private bool hasMiddleModifier;
 
         public ExpressionProcessor(IReadOnlyDictionary<string, object> variables, StringBuilder builder)
         {
@@ -33,7 +34,7 @@ namespace DoLess.UriTemplates
 
         public void EndExpression()
         {
-            if (!this.isEmpty && this.hasStartModifier)
+            if (!this.isEmpty && (this.hasStartModifier || this.hasMiddleModifier))
             {
                 this.builder.Append(this.expressionInfo.Separator);
             }
@@ -43,12 +44,18 @@ namespace DoLess.UriTemplates
         {
             this.hasEndModifier = false;
             this.hasStartModifier = false;
+            this.hasMiddleModifier = false;
             this.isEmpty = true;
         }
 
         public void SetStartModifier()
         {
             this.hasStartModifier = true;
+        }
+
+        public void SetMiddleModifier()
+        {
+            this.hasMiddleModifier = true;
         }
 
         public void SetEndModifier()
@@ -64,7 +71,7 @@ namespace DoLess.UriTemplates
             {
                 if (isStart && IsDefined(value))
                 {
-                    if (this.hasEndModifier)
+                    if (this.hasEndModifier || this.hasMiddleModifier)
                     {
                         this.builder.Append(this.expressionInfo.Separator);
                     }
@@ -83,9 +90,16 @@ namespace DoLess.UriTemplates
             }
             else
             {
-                if (isStart && this.hasStartModifier)
+                if (isStart)
                 {
-                    this.builder.Append(this.expressionInfo.First);
+                    if (this.hasStartModifier)
+                    {
+                        this.builder.Append(this.expressionInfo.First);
+                    }
+                    else if (this.hasMiddleModifier)
+                    {
+                        this.builder.Append(this.expressionInfo.Separator);
+                    }
                 }
                 else
                 {
