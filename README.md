@@ -120,6 +120,7 @@ This modifier is only useful for these operators:
 * Default
 * Reserved
 * Fragment
+* Query
 
 ## Roadmap/Ideas
 

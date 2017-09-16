@@ -139,6 +139,7 @@
         public static bool IsExpModifier(this char self)
         {
             return self == '<' ||
+                   self == '-' ||
                    self == '>';
         }
 
