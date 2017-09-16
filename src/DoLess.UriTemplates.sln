@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DoLess.UriTemplates", "DoLess.UriTemplates\DoLess.UriTemplates.csproj", "{0CE321EA-DC09-49B1-BA6E-FB63469ADD35}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DoLess.UriTemplates", "DoLess.UriTemplates\DoLess.UriTemplates.csproj", "{0CE321EA-DC09-49B1-BA6E-FB63469ADD35}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DoLess.UriTemplates.Tests", "DoLess.UriTemplates.Tests\DoLess.UriTemplates.Tests.csproj", "{E535CBD8-D2FB-45F3-8A70-CEC57B1FBFDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DoLess.UriTemplates.Tests", "DoLess.UriTemplates.Tests\DoLess.UriTemplates.Tests.csproj", "{E535CBD8-D2FB-45F3-8A70-CEC57B1FBFDF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DoLess.UriTemplates.Benchmarks", "DoLess.UriTemplates.Benchmarks\DoLess.UriTemplates.Benchmarks.csproj", "{B1B4DAA6-F5BF-4FCD-B984-8EAAD6666A7C}"
 EndProject
