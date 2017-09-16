@@ -2,16 +2,16 @@
 {
     internal class ExpressionInfo
     {
-        public static ExpressionInfo Default = new ExpressionInfo(string.Empty, string.Empty, ',', false, string.Empty, false, true);
-        public static ExpressionInfo Reserved = new ExpressionInfo("+", string.Empty, ',', false, string.Empty, true, true);
-        public static ExpressionInfo Label = new ExpressionInfo(".", ".", '.', false, string.Empty, false, false);
-        public static ExpressionInfo Path = new ExpressionInfo("/", "/", '/', false, string.Empty, false, false);
-        public static ExpressionInfo Matrix = new ExpressionInfo(";", ";", ';', true, string.Empty, false, false);
+        public static ExpressionInfo Default = new ExpressionInfo(string.Empty, string.Empty, ',', false, string.Empty, false, false);
+        public static ExpressionInfo Reserved = new ExpressionInfo("+", string.Empty, ',', false, string.Empty, true, false);
+        public static ExpressionInfo Label = new ExpressionInfo(".", ".", '.', false, string.Empty, false, true);
+        public static ExpressionInfo Path = new ExpressionInfo("/", "/", '/', false, string.Empty, false, true);
+        public static ExpressionInfo Matrix = new ExpressionInfo(";", ";", ';', true, string.Empty, false, true);
         public static ExpressionInfo Query = new ExpressionInfo("?", "?", '&', true, "=", false, true);
-        public static ExpressionInfo Continuation = new ExpressionInfo("&", "&", '&', true, "=", false, false);
-        public static ExpressionInfo Fragment = new ExpressionInfo("#", "#", ',', false, string.Empty, true, true);
+        public static ExpressionInfo Continuation = new ExpressionInfo("&", "&", '&', true, "=", false, true);
+        public static ExpressionInfo Fragment = new ExpressionInfo("#", "#", ',', false, string.Empty, true, false);
 
-        private ExpressionInfo(string opCode, string first, char sep, bool named, string ifemp, bool allowReserved, bool isEndModifierNeeded)
+        private ExpressionInfo(string opCode, string first, char sep, bool named, string ifemp, bool allowReserved, bool supportsPartialExpandInMulti)
         {
             this.OpCode = opCode;
             this.First = first;
@@ -19,7 +19,7 @@
             this.IsNamed = named;
             this.IfEmpty = ifemp;
             this.AllowReserved = allowReserved;
-            this.IsEndModifierNeeded = isEndModifierNeeded;
+            this.SupportsPartialExpandInMulti = supportsPartialExpandInMulti;
         }
 
         public string OpCode { get; }
@@ -34,6 +34,6 @@
 
         public bool AllowReserved { get; }
 
-        public bool IsEndModifierNeeded { get; }
+        public bool SupportsPartialExpandInMulti { get; }
     }
 }

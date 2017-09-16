@@ -76,22 +76,22 @@ namespace DoLess.UriTemplates
         /// <summary>
         /// Expands the variables and returns the resulting <see cref="string"/>.
         /// </summary>
-        /// <param name="ignoreUndefinedVariables">Indicates whether undefined variables should be ignored or let as is.</param>
+        /// <param name="expandPartially">Indicates whether undefined variables should be ignored or let as is.</param>
         /// <returns></returns>
-        public string ExpandToString(bool ignoreUndefinedVariables = true)
+        public string ExpandToString(bool expandPartially = false)
         {
-            TemplateProcessor templateProcessor = new TemplateProcessor(this.template, this.variables, !ignoreUndefinedVariables);
+            TemplateProcessor templateProcessor = new TemplateProcessor(this.template, this.variables, expandPartially);
             return templateProcessor.Expand();
         }
 
         /// <summary>
         /// Expands the variables and returns the resulting <see cref="Uri"/>.
         /// </summary>
-        /// <param name="ignoreUndefinedVariables">Indicates whether undefined variables should be ignored or let as is.</param>
+        /// <param name="expandPartially">Indicates whether undefined variables should be ignored or let as is.</param>
         /// <returns></returns>
-        public Uri ExpandToUri(bool ignoreUndefinedVariables = true)
+        public Uri ExpandToUri(bool expandPartially = false)
         {
-            return new Uri(this.ExpandToString(ignoreUndefinedVariables));
+            return new Uri(this.ExpandToString(expandPartially));
         }
 
         /// <summary>

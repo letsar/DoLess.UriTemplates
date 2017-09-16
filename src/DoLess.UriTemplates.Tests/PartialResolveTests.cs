@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -30,14 +29,14 @@ namespace DoLess.UriTemplates.Tests
         [TestCase("http://www.example.org{/udf3,var1,var2,var5,var4}{?a1*}{#l1}", "http://www.example.org/v1/v2/v5/v4?k1=v1&k2=v2#a1,a2,a3")]
         [TestCase("http://www.example.org{/udf3,var1,var2,udf5,var4}{?a1*}{#l1}", "http://www.example.org/v1/v2/v4?k1=v1&k2=v2#a1,a2,a3")]
         [TestCase("http://www.example.org{/udf3,var1,var2,udf5,udf4}{?a1*}{#l1}", "http://www.example.org/v1/v2?k1=v1&k2=v2#a1,a2,a3")]
-        [TestCase("http://www.example.org{?var3,var1,var2,var5,var4}", "http://www.example.org?var3=v3&var1=v1&var2=v2&var5=v5&var4=v4")]
-        [TestCase("http://www.example.org{?var5,var4,var3,var2,var1}", "http://www.example.org?var5=v5&var4=v4&var3=v3&var2=v2&var1=v1")]
-        [TestCase("http://www.example.org{?udf3,var1,var2,var5,var4}", "http://www.example.org?var1=v1&var2=v2&var5=v5&var4=v4")]
-        [TestCase("http://www.example.org{?var5,var4,var3,var2,udf1}", "http://www.example.org?var5=v5&var4=v4&var3=v3&var2=v2")]
-        [TestCase("http://www.example.org{?var5,var4,udf3,var2,var1}", "http://www.example.org?var5=v5&var4=v4&var2=v2&var1=v1")]
-        [TestCase("http://www.example.org{?var5,udf4,udf3,udf2,udf1}", "http://www.example.org?var5=v5")]
-        [TestCase("http://www.example.org{?udf5,udf4,udf3,udf2,var1}", "http://www.example.org?var1=v1")]
-        [TestCase("http://www.example.org{?udf5,udf4,udf3,udf2,udf1}", "http://www.example.org")]
+        [TestCase("http://www.example.org{/var3,var1,var2,var5,var4}", "http://www.example.org/v3/v1/v2/v5/v4")]
+        [TestCase("http://www.example.org{/var5,var4,var3,var2,var1}", "http://www.example.org/v5/v4/v3/v2/v1")]
+        [TestCase("http://www.example.org{/udf3,var1,var2,var5,var4}", "http://www.example.org/v1/v2/v5/v4")]
+        [TestCase("http://www.example.org{/var5,var4,var3,var2,udf1}", "http://www.example.org/v5/v4/v3/v2")]
+        [TestCase("http://www.example.org{/var5,var4,udf3,var2,var1}", "http://www.example.org/v5/v4/v2/v1")]
+        [TestCase("http://www.example.org{/var5,udf4,udf3,udf2,udf1}", "http://www.example.org/v5")]
+        [TestCase("http://www.example.org{/udf5,udf4,udf3,udf2,var1}", "http://www.example.org/v1")]
+        [TestCase("http://www.example.org{/udf5,udf4,udf3,udf2,udf1}", "http://www.example.org")]
         public void CascadingPartialExpandShouldBeCorrect(string template, string expected)
         {
             var uriTemplate = UriTemplate.For(template);
@@ -45,11 +44,11 @@ namespace DoLess.UriTemplates.Tests
             foreach (var key in Variables.Keys)
             {
                 uriTemplate.WithParameter(key, Variables[key]);
-                uriTemplate = UriTemplate.For(uriTemplate.ExpandToString(false));
+                uriTemplate = UriTemplate.For(uriTemplate.ExpandToString(true));
             }
 
             var result = uriTemplate.ExpandToString();
             result.ShouldBeEquivalentTo(expected);
-        }        
+        }       
     }
 }
