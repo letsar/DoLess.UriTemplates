@@ -16,7 +16,6 @@ namespace DoLess.UriTemplates.Tests
         [TestCaseSource(nameof(SpecExamplesData))]
         [TestCaseSource(nameof(ExtendedTestsData))]
         [TestCaseSource(nameof(NegativeTestsData))]
-        [TestCaseSource(nameof(ExtendedSpecData))]
         public void RunTests(SpecTestCase testCase)
         {
             SpecTestCaseTests(testCase, false);
@@ -41,11 +40,6 @@ namespace DoLess.UriTemplates.Tests
         public static IEnumerable<TestCaseData> NegativeTestsData()
         {
             return CreateTestSuiteFromResource("negative-tests");
-        }
-
-        public static IEnumerable<TestCaseData> ExtendedSpecData()
-        {
-            return CreateTestSuiteFromResource("extended-spec-tests");
         }
 
         public static IEnumerable<TestCaseData> PartialResolveData()
@@ -83,19 +77,19 @@ namespace DoLess.UriTemplates.Tests
 
         private static void ShouldFail(UriTemplate uriTemplate, bool isPartial)
         {
-            Action job = () => uriTemplate.ExpandToString(!isPartial);
+            Action job = () => uriTemplate.ExpandToString(isPartial);
             job.ShouldThrow<UriTemplateException>();
         }
 
         private static void ShouldMatch(UriTemplate uriTemplate, SpecStringTestCase testCase, bool isPartial)
         {
-            string result = uriTemplate.ExpandToString(!isPartial);
+            string result = uriTemplate.ExpandToString(isPartial);
             result.ShouldBeEquivalentTo(testCase.Result);
         }
 
         private static void ShouldMatchOne(UriTemplate uriTemplate, SpecListTestCase testCase, bool isPartial)
         {
-            string result = uriTemplate.ExpandToString(!isPartial);
+            string result = uriTemplate.ExpandToString(isPartial);
             result.Should()
                   .BeOneOf(testCase.Results);
         }

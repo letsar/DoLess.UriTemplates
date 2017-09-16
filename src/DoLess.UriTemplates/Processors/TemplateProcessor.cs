@@ -16,7 +16,6 @@ namespace DoLess.UriTemplates
             Literal,
             LiteralPercentEncoded,
             Operator,
-            ExpModifier,
             VarSpec,
             VarSpecPercentEncoded,
             VarSpecMaxLength,
@@ -27,7 +26,6 @@ namespace DoLess.UriTemplates
         private readonly StringBuilder uriStringBuilder;
         private readonly StringBuilder varStringBuilder;
         private readonly char[] pctEncoded = { Constants.PercentChar, char.MinValue, char.MinValue };
-        private readonly bool ignoreUndefinedVariables;
         private readonly ExpressionProcessor expressionProcessor;
 
         // Global state.
@@ -42,15 +40,14 @@ namespace DoLess.UriTemplates
         private int varSpecMaxLength;
         private bool varSpecIsExploded;
 
-        public TemplateProcessor(string template, IReadOnlyDictionary<string, object> variables, bool ignoreUndefinedVariables)
+        public TemplateProcessor(string template, IReadOnlyDictionary<string, object> variables, bool expandPartially)
         {
             this.template = template;
-            this.ignoreUndefinedVariables = ignoreUndefinedVariables;
 
             this.uriStringBuilder = new StringBuilder(template.Length * 2);
             this.varStringBuilder = new StringBuilder();
 
-            this.expressionProcessor = new ExpressionProcessor(variables, this.uriStringBuilder, ignoreUndefinedVariables);
+            this.expressionProcessor = new ExpressionProcessor(variables, this.uriStringBuilder, expandPartially);
         }
 
         public string Template => this.template;
@@ -102,11 +99,7 @@ namespace DoLess.UriTemplates
 
                 case State.Operator:
                     this.ProcessOperator();
-                    break;
-
-                case State.ExpModifier:
-                    this.ProcessExpModifier();
-                    break;
+                    break;               
 
                 case State.VarSpec:
                     this.ProcessVarSpec();
@@ -195,7 +188,7 @@ namespace DoLess.UriTemplates
             {
                 if (this.currentChar.IsOpNotSupported())
                 {
-                    throw new OperatorNotSupportedException(this.currentChar);
+                    this.ThrowOperatorNotSupported();
                 }
                 else
                 {
@@ -224,46 +217,15 @@ namespace DoLess.UriTemplates
                             break;
                         default:
                             this.expressionProcessor.StartExpression(ExpressionInfo.Default);
-                            if (this.currentChar.IsExpModifier())
-                            {
-                                this.ProcessExpModifier();
-                            }
-                            else
-                            {
-                                this.varStringBuilder.Append(this.currentChar);
-                            }
+                            this.varStringBuilder.Append(this.currentChar);
                             break;
                     }
+                    this.state = State.VarSpec;
                 }
-                this.state = State.ExpModifier;
             }
             catch (Exception ex)
             {
                 this.Throw(ex.Message, ex);
-            }
-        }
-
-        private void ProcessExpModifier()
-        {
-            this.state = State.VarSpec;
-
-            switch (this.currentChar)
-            {
-                case Constants.ExpStartModifier:
-                    this.expressionProcessor.SetStartModifier();
-                    break;
-
-                case Constants.ExpMiddleModifier:
-                    this.expressionProcessor.SetMiddleModifier();
-                    break;
-
-                case Constants.ExpEndModifier:
-                    this.expressionProcessor.SetEndModifier();
-                    break;
-
-                default:
-                    this.ProcessVarSpec();
-                    break;
             }
         }
 
@@ -465,6 +427,11 @@ namespace DoLess.UriTemplates
         private void Throw(string message, Exception innerException = null)
         {
             throw new UriTemplateParseException(message, this, innerException);
+        }
+
+        private void ThrowOperatorNotSupported()
+        {
+            throw new OperatorNotSupportedException(this.currentChar);
         }
     }
 }

@@ -67,5 +67,14 @@ namespace DoLess.UriTemplates.Tests
             uriString.ShouldBeEquivalentTo("http://example.org/books?count=10");
         }
 
+        [Test]
+        public void Example06()
+        {
+            string uriString = UriTemplate.For("http://example.org/{area}/news{?type,count}")
+                                          .WithParameter("count", 10)
+                                          .ExpandToString(true);
+            uriString.ShouldBeEquivalentTo("http://example.org/{area}/news?count=10{&type}");
+        }
+
     }
 }

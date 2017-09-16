@@ -8,8 +8,5 @@
         public const char VariableSeparator = ',';
         public const char PrefixModifier = ':';
         public const char ExplodeModifier = '*';
-        public const char ExpStartModifier = '<';
-        public const char ExpMiddleModifier = '-';
-        public const char ExpEndModifier = '>';
     }
 }
