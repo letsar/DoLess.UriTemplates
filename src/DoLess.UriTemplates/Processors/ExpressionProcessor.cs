@@ -13,6 +13,10 @@ namespace DoLess.UriTemplates
         private readonly StringBuilder builder;
         private ExpressionInfo expressionInfo;
         private int startLength;
+        private bool isEmpty;
+
+        private bool hasStartModifier;
+        private bool hasEndModifier;
 
         public ExpressionProcessor(IReadOnlyDictionary<string, object> variables, StringBuilder builder)
         {
@@ -24,18 +28,45 @@ namespace DoLess.UriTemplates
         {
             this.expressionInfo = expressionInfo;
             this.startLength = this.builder.Length;
+            this.ClearModifiers();
+        }
+
+        public void EndExpression()
+        {
+            if (!this.isEmpty && this.hasStartModifier)
+            {
+                this.builder.Append(this.expressionInfo.Separator);
+            }
+        }
+
+        public void ClearModifiers()
+        {
+            this.hasEndModifier = false;
+            this.hasStartModifier = false;
+            this.isEmpty = true;
+        }
+
+        public void SetStartModifier()
+        {
+            this.hasStartModifier = true;
+        }
+
+        public void SetEndModifier()
+        {
+            this.hasEndModifier = true;
         }
 
         public void Expand(VarSpec varSpec)
         {
+            bool isStart = this.builder.Length == this.startLength;
+
             if (this.variables.TryGetValue(varSpec.Name, out object value) && value != null)
             {
-                bool isStart = this.builder.Length == this.startLength;
                 if (isStart && IsDefined(value))
                 {
-                    if (varSpec.IsContinuation)
+                    if (this.hasEndModifier)
                     {
-                        this.builder.Append(expressionInfo.Separator);
+                        this.builder.Append(this.expressionInfo.Separator);
                     }
                     else
                     {
@@ -48,15 +79,11 @@ namespace DoLess.UriTemplates
                 }
 
                 this.Expand(varSpec, value);
-
-                if (varSpec.IsConditional)
-                {
-                    this.builder.Append(expressionInfo.Separator);
-                }
+                this.isEmpty = false;
             }
             else
             {
-                if (varSpec.IsConditional)
+                if (isStart && this.hasStartModifier)
                 {
                     this.builder.Append(this.expressionInfo.First);
                 }

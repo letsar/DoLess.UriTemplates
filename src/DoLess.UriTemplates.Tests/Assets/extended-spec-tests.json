@@ -1,0 +1,91 @@
+{
+    "Start modifier with value":{
+        "level":100,
+        "variables":{
+            "var1"         : "v1",
+            "id"           : "person",
+            "token"        : "12345",
+            "fields"       : ["id", "name", "picture"],           
+            "assoc"        : { "key1" : "value1" }
+        },
+        "testcases":[
+
+            ["{<var1}", "v1,"],
+            ["{+<var1}", "v1,"],
+            ["{.<var1}",  ".v1."],
+            ["{/<var1}", "/v1/"],
+            ["{;<var1}",  ";var1=v1;"],
+            ["{?<var1}",  "?var1=v1&"],
+            ["{&<var1}",  "&var1=v1&"],
+            ["{#<var1}",  "#v1,"],
+            ["{<id:3}", "per,"],
+            ["{<fields*}", "id,name,picture,"],
+            ["{<assoc*}", "key1=value1,"],
+            ["{?<var1,id}", "?var1=v1&id=person&"]
+        ]
+    },
+    "Start modifier without value":{
+        "level":100,
+        "variables":{
+            "id"           : "person",
+            "token"        : "12345",
+            "fields"       : ["id", "name", "picture"],           
+            "assoc"        : { "key1" : "value1" }
+        },
+        "testcases":[
+
+            ["{<var1}", ""],
+            ["{+<var1}", ""],
+            ["{.<var1}", "."],
+            ["{/<var1}", "/"],
+            ["{;<var1}", ";"],
+            ["{?<var1}", "?"],
+            ["{&<var1}", "&"],
+            ["{#<var1}", "#"]
+        ]
+    },
+    "End modifier with value":{
+        "level":100,
+        "variables":{
+            "var1"         : "v1",
+            "id"           : "person",
+            "token"        : "12345",
+            "fields"       : ["id", "name", "picture"],           
+            "assoc"        : { "key1" : "value1" }
+        },
+        "testcases":[
+
+            ["{>var1}", ",v1"],
+            ["{+>var1}", ",v1"],
+            ["{.>var1}",  ".v1"],
+            ["{/>var1}", "/v1"],
+            ["{;>var1}",  ";var1=v1"],
+            ["{?>var1}",  "&var1=v1"],
+            ["{&>var1}",  "&var1=v1"],
+            ["{#>var1}",  ",v1"],
+            ["{>id:3}", ",per"],
+            ["{>fields*}", ",id,name,picture"],
+            ["{>assoc*}", ",key1=value1"]
+        ]
+    },   
+    "End modifier without value":{
+        "level":100,
+        "variables":{
+            "id"           : "person",
+            "token"        : "12345",
+            "fields"       : ["id", "name", "picture"],           
+            "assoc"        : { "key1" : "value1" }
+        },
+        "testcases":[
+
+            ["{>var1}", ""],
+            ["{+>var1}", ""],
+            ["{.>var1}",  ""],
+            ["{/>var1}", ""],
+            ["{;>var1}",  ""],
+            ["{?>var1}",  ""],
+            ["{&>var1}",  ""],
+            ["{#>var1}",  ""]
+        ]
+    }   
+}
