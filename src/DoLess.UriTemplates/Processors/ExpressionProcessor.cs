@@ -1,30 +1,34 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using DoLess.UriTemplates.Entities;
 using DoLess.UriTemplates.Helpers;
+using DoLess.UriTemplates.ValueFormatters;
 
 namespace DoLess.UriTemplates
 {
     internal class ExpressionProcessor
     {
+        private static readonly IValueFormatter ValueFormatter = new DefaultValueFormatter();
+
         private readonly IReadOnlyDictionary<string, object> variables;
         private readonly StringBuilder builder;
         private readonly List<VarSpec> unexpandedVariables;
+        private readonly IValueFormatter valueFormatter;
         private ExpressionInfo expressionInfo;
         private int startLength;
         private bool expandPartially;
         private int definedVariables;
 
-        public ExpressionProcessor(IReadOnlyDictionary<string, object> variables, StringBuilder builder, bool expandPartially)
+        public ExpressionProcessor(IReadOnlyDictionary<string, object> variables, StringBuilder builder, bool expandPartially, IValueFormatter valueFormatter)
         {
             this.variables = variables;
             this.builder = builder;
             this.expandPartially = expandPartially;
             this.unexpandedVariables = new List<VarSpec>();
+            this.valueFormatter = valueFormatter ?? ValueFormatter;
         }
 
         public void StartExpression(ExpressionInfo expressionInfo)
@@ -274,8 +278,7 @@ namespace DoLess.UriTemplates
 
         private string ValueToString(object value)
         {
-            var result = Convert.ToString(value, CultureInfo.InvariantCulture);
-            return result;
+            return this.valueFormatter.Format(value);
         }
 
         private void ThrowNotSuitablePrefixException(VarSpec varSpec)

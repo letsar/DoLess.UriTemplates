@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Romain Rastel</Authors>
     <Company>Romain Rastel</Company>
-    <Description>.Net Standard 2.0 implementation of the URI Template Spec</Description>
+    <Description>.Net Standard 2.0 implementation of the URI Template Spec (RFC6570). Supports level 4</Description>
     <Copyright>Romain Rastel</Copyright>
     <PackageLicenseUrl>https://github.com/letsar/DoLess.UriTemplates/blob/master/LICENSE</PackageLicenseUrl>
     <Product>DoLess.UriTemplates</Product>
@@ -13,7 +13,8 @@
     <RepositoryUrl>https://github.com/letsar/DoLess.UriTemplates</RepositoryUrl>
     <PackageTags>UriTemplate, http, template, uri</PackageTags>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.1.0</Version>
+    <Version>1.2.0</Version>
+    <PackageReleaseNotes>https://github.com/letsar/DoLess.UriTemplates/releases</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
