@@ -74,9 +74,8 @@ uriString.ShouldBeEquivalentTo("http://example.org/books?count=10");
 `DoLess.UriTemplates` supports the following parameter types:
 
 * `string`
-* `IEnumerable<string>`
-* `IDictionary<string,string>`
-* `IReadOnlyDictionary<string,string>`
+* `IEnumerable<KeyValuePair<string, string>`
+* `IEnumerable`
 
 All other types will be converted to `string` using the default value converter (which does a `Convert.ToString(value, CultureInfo.InvariantCulture)`).
 You can control the way an object is formatted by providing an `IValueFormatter` or a `Func<object,string>`:

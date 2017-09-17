@@ -136,17 +136,11 @@ namespace DoLess.UriTemplates
             this.Expand(varSpec, isEmpty, values, this.ExpandValues);
         }
 
-        private void Expand(VarSpec varSpec, IDictionary<string, string> values)
+        private void Expand(VarSpec varSpec, IEnumerable<KeyValuePair<string, string>> values)
         {
-            bool isEmpty = values.Count == 0;
+            bool isEmpty = !values.Any();
             this.Expand(varSpec, isEmpty, values, this.ExpandValues);
-        }
-
-        private void Expand(VarSpec varSpec, IReadOnlyDictionary<string, string> values)
-        {
-            bool isEmpty = values.Count == 0;
-            this.Expand(varSpec, isEmpty, values, this.ExpandValues);
-        }
+        }       
 
         private void ExpandValues(IEnumerable values, VarSpec varSpec, char separator)
         {
@@ -166,37 +160,21 @@ namespace DoLess.UriTemplates
             }
         }
 
-        private void ExpandValues(IReadOnlyDictionary<string, string> values, VarSpec varSpec, char separator)
+        private void ExpandValues(IEnumerable<KeyValuePair<string, string>> values, VarSpec varSpec, char separator)
         {
             var isExploded = varSpec.IsExploded;
 
             var name = varSpec.Name;
             var pairSeparator = isExploded ? '=' : ',';
 
-            foreach (var key in values.Keys)
+            foreach (var pair in values)
             {
-                this.builder.AppendEncoded(key, this.expressionInfo.AllowReserved);
+                this.builder.AppendEncoded(pair.Key, this.expressionInfo.AllowReserved);
                 this.builder.Append(pairSeparator);
-                this.builder.AppendEncoded(values[key], this.expressionInfo.AllowReserved);
+                this.builder.AppendEncoded(pair.Value, this.expressionInfo.AllowReserved);
                 this.builder.Append(separator);
             }
-        }
-
-        private void ExpandValues(IDictionary<string, string> values, VarSpec varSpec, char separator)
-        {
-            var isExploded = varSpec.IsExploded;
-
-            var name = varSpec.Name;
-            var pairSeparator = isExploded ? '=' : ',';
-
-            foreach (var key in values.Keys)
-            {
-                this.builder.AppendEncoded(key, this.expressionInfo.AllowReserved);
-                this.builder.Append(pairSeparator);
-                this.builder.AppendEncoded(values[key], this.expressionInfo.AllowReserved);
-                this.builder.Append(separator);
-            }
-        }
+        }        
 
         private void Expand<T>(VarSpec varSpec, bool isEmpty, T values, Action<T, VarSpec, char> expandValues)
         {
@@ -230,13 +208,9 @@ namespace DoLess.UriTemplates
                     this.Expand(varSpec, val);
                     break;
 
-                case IDictionary<string, string> val:
+                case IEnumerable<KeyValuePair<string, string>> val:
                     this.Expand(varSpec, val);
-                    break;
-
-                case IReadOnlyDictionary<string, string> val:
-                    this.Expand(varSpec, val);
-                    break;
+                    break;                
 
                 case IEnumerable val:
                     this.Expand(varSpec, val);
