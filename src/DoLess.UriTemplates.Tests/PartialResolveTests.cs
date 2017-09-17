@@ -39,15 +39,17 @@ namespace DoLess.UriTemplates.Tests
         [TestCase("http://www.example.org{/udf5,udf4,udf3,udf2,udf1}", "http://www.example.org")]
         public void CascadingPartialExpandShouldBeCorrect(string template, string expected)
         {
-            var uriTemplate = UriTemplate.For(template);
+            var uriTemplate = UriTemplate.For(template)
+                                         .WithPartialExpand();
 
             foreach (var key in Variables.Keys)
             {
                 uriTemplate.WithParameter(key, Variables[key]);
-                uriTemplate = UriTemplate.For(uriTemplate.ExpandToString(true));
+                uriTemplate = UriTemplate.For(uriTemplate.ExpandToString()).WithPartialExpand();
             }
 
-            var result = uriTemplate.ExpandToString();
+            var result = uriTemplate.WithPartialExpand(false)
+                                    .ExpandToString();
             result.ShouldBeEquivalentTo(expected);
         }       
     }

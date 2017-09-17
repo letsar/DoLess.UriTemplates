@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using System.Text;
 using FluentAssertions;
 using NUnit.Framework;
@@ -72,9 +73,31 @@ namespace DoLess.UriTemplates.Tests
         {
             string uriString = UriTemplate.For("http://example.org/{area}/news{?type,count}")
                                           .WithParameter("count", 10)
-                                          .ExpandToString(true);
+                                          .WithPartialExpand()
+                                          .ExpandToString();
             uriString.ShouldBeEquivalentTo("http://example.org/{area}/news?count=10{&type}");
         }
 
+        [Test]
+        public void Example07()
+        {
+            Func<object, string> func = x =>
+            {
+                switch (x)
+                {
+                    case Vector2 y:
+                        return $"({y.X},{y.Y})";
+                    default:
+                        return x?.ToString();
+                }
+            };
+            Vector2 u = new Vector2(3, 4);
+            string uriString = UriTemplate.For("http://example.org{/vector}")
+                                          .WithParameter("vector", u)
+                                          .WithValueFormatter(func)
+                                          .ExpandToString();
+
+            uriString.ShouldBeEquivalentTo("http://example.org/%283%2C4%29");
+        }
     }
 }

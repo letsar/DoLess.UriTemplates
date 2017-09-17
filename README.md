@@ -15,7 +15,7 @@ Install via [Nuget package](https://www.nuget.org/packages/DoLess.UriTemplates)
 
 ## Examples
 
-Resolve a URI template:
+Expand a URI template:
 
 ```csharp
 string uriString = UriTemplate.For("http://example.org/{resource}{?genre,count}")
@@ -71,6 +71,36 @@ string uriString = UriTemplate.For("http://example.org/{resource}{?genre,count}"
 uriString.ShouldBeEquivalentTo("http://example.org/books?count=10");
 ```
 
+`DoLess.UriTemplates` supports the following parameter types:
+
+* `string`
+* `IEnumerable<string>`
+* `IDictionary<string,string>`
+* `IReadOnlyDictionary<string,string>`
+
+All other types will be converted to `string` using the default value converter (which does a `Convert.ToString(value, CultureInfo.InvariantCulture)`).
+You can control the way an object is formatted by providing an `IValueFormatter` or a `Func<object,string>`:
+
+```csharp
+Func<object, string> func = x =>
+{
+    switch (x)
+    {
+        case Vector2 y:
+            return $"({y.X},{y.Y})";
+        default:
+            return x?.ToString();
+    }
+};
+Vector2 u = new Vector2(3, 4);
+string uriString = UriTemplate.For("http://example.org{/vector}")
+                              .WithParameter("vector", u)
+                              .WithValueFormatter(func)
+                              .ExpandToString();
+
+uriString.ShouldBeEquivalentTo("http://example.org/%283%2C4%29");
+```
+
 ## Partial Expand
 
 `DoLess.UriTemplates` can expand partially some templates.
@@ -87,7 +117,8 @@ Example:
 ```csharp
 string uriString = UriTemplate.For("http://example.org/{area}/news{?type,count}")
                               .WithParameter("count", 10)
-                              .ExpandToString(true);
+                              .WithPartialExpand()
+                              .ExpandToString();
 uriString.ShouldBeEquivalentTo("http://example.org/{area}/news?count=10{&type}");
 ```
 
