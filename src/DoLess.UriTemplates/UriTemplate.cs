@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DoLess.UriTemplates.ValueFormatters;
 
 namespace DoLess.UriTemplates
 {
@@ -10,11 +11,14 @@ namespace DoLess.UriTemplates
     {
         private readonly Dictionary<string, object> variables;
         private readonly string template;
+        private IValueFormatter valueFormatter;
+        private bool isPartialExpand;
 
         private UriTemplate(string template, bool isParameterNameCaseSensitive)
         {
             this.template = template;
             this.variables = new Dictionary<string, object>(isParameterNameCaseSensitive ? null : StringComparer.OrdinalIgnoreCase);
+            this.isPartialExpand = false;
         }
 
         /// <summary>
@@ -74,24 +78,58 @@ namespace DoLess.UriTemplates
         }
 
         /// <summary>
-        /// Expands the variables and returns the resulting <see cref="string"/>.
+        /// Indicates whether the undefined variables should be let as is or removed.
         /// </summary>
-        /// <param name="expandPartially">Indicates whether undefined variables should be ignored or let as is.</param>
+        /// <param name="isPartialExpand">The new value.</param>
         /// <returns></returns>
-        public string ExpandToString(bool expandPartially = false)
+        public UriTemplate WithPartialExpand(bool isPartialExpand = true)
         {
-            TemplateProcessor templateProcessor = new TemplateProcessor(this.template, this.variables, expandPartially);
+            this.isPartialExpand = isPartialExpand;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the value formatter.
+        /// </summary>
+        /// <param name="valueFormatter">The value formatter.</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Setting the <paramref name="valueFormatter"/> to null, resets to the default value formatter.
+        /// </remarks>
+        public UriTemplate WithValueFormatter(IValueFormatter valueFormatter)
+        {
+            this.valueFormatter = valueFormatter;
+            return this;
+        }
+
+        /// <summary>
+        /// Sets the value formatter.
+        /// </summary>
+        /// <param name="func">The value formatter.</param>
+        /// <returns></returns>
+        public UriTemplate WithValueFormatter(Func<object, string> func)
+        {
+            this.valueFormatter = new DelegatingValueFormatter(func);
+            return this;
+        }
+
+        /// <summary>
+        /// Expands the variables and returns the resulting <see cref="string"/>.
+        /// </summary>     
+        /// <returns></returns>
+        public string ExpandToString()
+        {
+            TemplateProcessor templateProcessor = new TemplateProcessor(this.template, this.variables, this.isPartialExpand, this.valueFormatter);
             return templateProcessor.Expand();
         }
 
         /// <summary>
         /// Expands the variables and returns the resulting <see cref="Uri"/>.
-        /// </summary>
-        /// <param name="expandPartially">Indicates whether undefined variables should be ignored or let as is.</param>
+        /// </summary>      
         /// <returns></returns>
-        public Uri ExpandToUri(bool expandPartially = false)
+        public Uri ExpandToUri()
         {
-            return new Uri(this.ExpandToString(expandPartially));
+            return new Uri(this.ExpandToString());
         }
 
         /// <summary>

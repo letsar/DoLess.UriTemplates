@@ -40,14 +40,14 @@ namespace DoLess.UriTemplates
         private int varSpecMaxLength;
         private bool varSpecIsExploded;
 
-        public TemplateProcessor(string template, IReadOnlyDictionary<string, object> variables, bool expandPartially)
+        public TemplateProcessor(string template, IReadOnlyDictionary<string, object> variables, bool expandPartially, IValueFormatter valueFormatter)
         {
             this.template = template;
 
             this.uriStringBuilder = new StringBuilder(template.Length * 2);
             this.varStringBuilder = new StringBuilder();
 
-            this.expressionProcessor = new ExpressionProcessor(variables, this.uriStringBuilder, expandPartially);
+            this.expressionProcessor = new ExpressionProcessor(variables, this.uriStringBuilder, expandPartially, valueFormatter);
         }
 
         public string Template => this.template;
