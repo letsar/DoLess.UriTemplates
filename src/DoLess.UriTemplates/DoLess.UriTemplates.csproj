@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile Condition=" '$(Configuration)' == 'Release' ">true</GenerateDocumentationFile>
+		<DebugType>embedded</DebugType>
     <Authors>Romain Rastel</Authors>
     <Company>Romain Rastel</Company>
     <Description>.Net Standard 2.0 implementation of the URI Template Spec (RFC6570). Supports level 4</Description>
