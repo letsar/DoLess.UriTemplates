@@ -1,11 +1,11 @@
 # DoLess.UriTemplates
 
-.Net Standard 2.0 implementation of the URI Template Spec [RFC6570](http://tools.ietf.org/html/rfc6570):
+.Net Standard 1.3 implementation of the URI Template Spec [RFC6570](http://tools.ietf.org/html/rfc6570):
 
 * Supports up to level 4 templates expression
 * Tested against all test cases from [UriTemplate test suite](https://github.com/uri-templates/uritemplate-test).
 * Fluent API
-* .Net Standard 2.0
+* .Net Standard 1.3
 * Partial expand
 * Fast
 
@@ -120,7 +120,3 @@ string uriString = UriTemplate.For("http://example.org/{area}/news{?type,count}"
                               .ExpandToString();
 uriString.ShouldBeEquivalentTo("http://example.org/{area}/news?count=10{&type}");
 ```
-
-## Roadmap/Ideas
-
-- [x] Support partial expand
