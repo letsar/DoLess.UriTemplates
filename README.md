@@ -120,3 +120,91 @@ string uriString = UriTemplate.For("http://example.org/{area}/news{?type,count}"
                               .ExpandToString();
 uriString.ShouldBeEquivalentTo("http://example.org/{area}/news?count=10{&type}");
 ```
+
+## Query Object
+
+A **query object** is an object which properties are meant to be query parameters.
+You can create a **query object** by subclassing the `QueryObject` abstract class:
+
+```csharp
+public class Filters : QueryObject
+{
+    public int Year
+    {
+        get => this.Get<int>();
+        set => this.Set<int>(value);
+    }
+
+    public IEnumerable<string> Genres
+    {
+        get => this.Get<IEnumerable<string>>();
+        set => this.Set<IEnumerable<string>>(value);
+    }
+}
+
+Filters filters = new Filters
+{
+    Year = 1988,
+    Genres = new[] { "action", "adventure" }
+};
+
+var result = UriTemplate.For("/api{?filters*}")
+                        .WithParameter("filters", filters)
+                        .ExpandToString();
+
+result.ShouldBeEquivalentTo("/api?year=1988&genres=action,adventure");
+
+```
+
+You can choose the way to format your property name by specifying a `Func<string,string>` in the `Get` and `Set` methods.
+You can also set a default format function for all your properties by calling the base constructor with a `Func<string,string>` (By default it will be snake_lower_case):
+
+```csharp
+public class CustomQueryObject : QueryObject
+{
+    public CustomQueryObject()
+        : base(StringFormatters.ToKebabCase)
+    {
+    }
+
+    public int KebabCase
+    {
+        get => this.Get<int>();
+        set => this.Set<int>(value);
+    }
+
+    public int LowerCamelCase
+    {
+        get => this.Get<int>(StringFormatters.ToLowerCamelCase);
+        set => this.Set<int>(StringFormatters.ToLowerCamelCase, value);
+    }
+
+    public int MyOwnFormat
+    {
+        get => this.Get<int>(null,"WithMyOwnKey");
+        set => this.Set<int>(null, value, "WithMyOwnKey");
+    }
+}
+
+CustomQueryObject customQueryObject = new CustomQueryObject
+{
+    KebabCase = 1,
+    LowerCamelCase = 2,
+    MyOwnFormat = 3
+};
+
+var result = UriTemplate.For("/api{?filters*}")
+                        .WithParameter("filters", customQueryObject)
+                        .ExpandToString();
+
+result.ShouldBeEquivalentTo("/api?kebab-case=1&lowerCamelCase=2&WithMyOwnKey=3");
+```
+
+`DoLess.UriTemplates` comes with default formatters, available in `DoLess.UriTemplates.Helpers.StringFormatters`:
+
+* `ToLowerCamelCase` (myVariableName)
+* `ToUpperCamelCase` (MyVariableName)
+* `ToLowerSnakeCase` (my_variable_name)
+* `ToUpperSnakeCase` (My_Variable_Name)
+* `ToKebabCase` (my-variable-name)
+* `ToTrainCase` (My-Variable-Name)

@@ -115,6 +115,8 @@ namespace DoLess.UriTemplates
         {
             switch (value)
             {
+                case QueryObject queryObject:
+                    return queryObject.Count > 0;
                 case IEnumerable enumerable:
                     return enumerable.Any();
                 case null:
@@ -140,7 +142,19 @@ namespace DoLess.UriTemplates
         {
             bool isEmpty = !values.Any();
             this.Expand(varSpec, isEmpty, values, this.ExpandValues);
-        }       
+        }
+
+        private void Expand(VarSpec varSpec, IEnumerable<KeyValuePair<string, object>> values)
+        {
+            bool isEmpty = !values.Any();
+            this.Expand(varSpec, isEmpty, values, this.ExpandValues);
+        }
+
+        private void Expand(VarSpec varSpec, QueryObject values)
+        {
+            bool isEmpty = values.Count == 0;
+            this.Expand(varSpec, isEmpty, values, this.ExpandValues);
+        }
 
         private void ExpandValues(IEnumerable values, VarSpec varSpec, char separator)
         {
@@ -174,7 +188,43 @@ namespace DoLess.UriTemplates
                 this.builder.AppendEncoded(pair.Value, this.expressionInfo.AllowReserved);
                 this.builder.Append(separator);
             }
-        }        
+        }
+
+        private void ExpandValues(IEnumerable<KeyValuePair<string, object>> values, VarSpec varSpec, char separator)
+        {
+            var isExploded = varSpec.IsExploded;
+
+            var name = varSpec.Name;
+            var pairSeparator = isExploded ? '=' : ',';
+
+            foreach (var pair in values)
+            {
+                this.builder.AppendEncoded(pair.Key, this.expressionInfo.AllowReserved);
+                this.builder.Append(pairSeparator);
+
+                if (!(pair.Value is string) && pair.Value is IEnumerable innerValues)
+                {
+                    bool hasValue = false;
+                    foreach (var innerValue in innerValues)
+                    {
+                        this.builder.AppendEncoded(this.ValueToString(innerValue), this.expressionInfo.AllowReserved);
+                        this.builder.Append(',');
+                        hasValue = true;
+                    }
+                    if (hasValue)
+                    {
+                        this.builder.RemoveLastChar();
+                    }
+
+                }
+                else
+                {
+                    this.builder.AppendEncoded(this.ValueToString(pair.Value), this.expressionInfo.AllowReserved);
+                }
+
+                this.builder.Append(separator);
+            }
+        }
 
         private void Expand<T>(VarSpec varSpec, bool isEmpty, T values, Action<T, VarSpec, char> expandValues)
         {
@@ -208,9 +258,17 @@ namespace DoLess.UriTemplates
                     this.Expand(varSpec, val);
                     break;
 
+                case QueryObject val:
+                    this.Expand(varSpec, val);
+                    break;
+
+                case IEnumerable<KeyValuePair<string, object>> val:
+                    this.Expand(varSpec, val);
+                    break;
+
                 case IEnumerable<KeyValuePair<string, string>> val:
                     this.Expand(varSpec, val);
-                    break;                
+                    break;
 
                 case IEnumerable val:
                     this.Expand(varSpec, val);
@@ -252,7 +310,14 @@ namespace DoLess.UriTemplates
 
         private string ValueToString(object value)
         {
-            return this.valueFormatter.Format(value);
+            if (value is string stringValue)
+            {
+                return stringValue;
+            }
+            else
+            {
+                return this.valueFormatter.Format(value);
+            }
         }
 
         private void ThrowNotSuitablePrefixException(VarSpec varSpec)
